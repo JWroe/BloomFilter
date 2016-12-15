@@ -1,7 +1,7 @@
 using BloomFilters;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace UnitTestProject1
+namespace BloomFilterTests
 {
     [TestClass]
     public class BloomFilterTests

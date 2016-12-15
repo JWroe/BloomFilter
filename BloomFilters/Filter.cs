@@ -54,6 +54,11 @@ namespace BloomFilters
             var hashFuncCreator = HashFunction.CreateHashFunction(algorithm);
             var salts = Enumerable.Range(start: 0, count: numSalts).Select(i => hashFuncCreator(hashFuncCreator(i.ToString().GetBytes()).Digest()));
 
+            return key => Hash(numSlices, numBits, salts, key);
+        }
+
+        private static IEnumerable<long> Hash(int numSlices, long numBits, IEnumerable<HashFunction> salts, string key)
+        {
             //    def _make_hashfuncs(key):
             //if isinstance(key, unicode):
             //    key = key.encode('utf-8')
@@ -69,11 +74,6 @@ namespace BloomFilters
             //        if i >= num_slices:
             //            return
 
-            return key => Hash(numSlices, numBits, salts, key);
-        }
-
-        private static IEnumerable<long> Hash(int numSlices, long numBits, IEnumerable<HashFunction> salts, string key)
-        {
             var i = 0;
             foreach (var salt in salts)
             {
