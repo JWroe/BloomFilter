@@ -1,9 +1,12 @@
 ﻿using System;
 
-class Program
+namespace BloomFilters
 {
-    static void Main(string[] args)
+    internal class Program
     {
-        Console.WriteLine("Hello World!");
+        static void Main()
+        {
+            Console.WriteLine("Hello World!");
+        }
     }
 }
