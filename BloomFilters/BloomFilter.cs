@@ -7,27 +7,28 @@ namespace BloomFilters
 {
     public class BloomFilter
     {
-        //public Func<string, object> MakeHashes => MakeHashFuncs(NumSlices, BitsPerSlice);
-        public int NumBits => NumSlices * BitsPerSlice;
+        public long NumBits => NumSlices * BitsPerSlice;
 
         public ulong Capacity { get; set; }
 
-        public int BitsPerSlice { get; set; }
+        public long BitsPerSlice { get; set; }
 
         public int NumSlices { get; set; }
 
         public double ErrorRate { get; set; }
 
-        public Func<string, IEnumerable<long>> CreateHashingAlgorithm(int numSlices, long numBits)
+        public Func<string, IEnumerable<long>> HashFunc { get; private set; }
+
+        public Func<string, IEnumerable<long>> CreateHashingAlgorithm()
         {
             int chunkSize;
             char fmtCode;
-            if (numBits > int.MaxValue)
+            if (BitsPerSlice > int.MaxValue)
             {
                 chunkSize = 8;
                 fmtCode = 'Q';
             }
-            else if (numBits > short.MaxValue)
+            else if (BitsPerSlice > short.MaxValue)
             {
                 chunkSize = 4;
                 fmtCode = 'I';
@@ -38,23 +39,22 @@ namespace BloomFilters
                 fmtCode = 'H';
             }
 
-            var totalHashBits = 8 * numSlices * chunkSize;
+            var totalHashBits = 8 * NumSlices * chunkSize;
             var algorithm = ChooseHashAlgorithm(totalHashBits);
 
             var count = (int)Math.Floor((double)algorithm.HashSize / chunkSize);
             var fmt = Enumerable.Repeat(fmtCode, count);
-            var numSalts = numSlices / count;
-            var extra = numSlices % count;
+            var numSalts = NumSlices / count;
+            var extra = NumSlices % count;
             if (extra != 0)
             {
                 numSalts++;
             }
 
-            //salts = tuple(hashfn(hashfn(str(i)).digest()) for i in xrange(num_salts))
             var hashFuncCreator = HashFunction.CreateHashFunction(algorithm);
             var salts = Enumerable.Range(start: 0, count: numSalts).Select(i => hashFuncCreator(hashFuncCreator(i.ToString().GetBytes()).Digest()));
 
-            return key => Hash(numSlices, numBits, salts, key);
+            return key => Hash(NumSlices, NumBits, salts, key);
         }
 
         private static IEnumerable<long> Hash(int numSlices, long numBits, IEnumerable<HashFunction> salts, string key)
@@ -80,7 +80,8 @@ namespace BloomFilters
                 var h = salt.Copy();
                 h.Update(key);
 
-                foreach (long num in h.Digest())
+                Console.WriteLine(h.Digest().GetString());
+                foreach (long num in Unpack(h.Digest()))
                 {
                     yield return num % numBits;
                     i++;
@@ -92,7 +93,18 @@ namespace BloomFilters
             }
         }
 
-        private static HashAlgorithm ChooseHashAlgorithm(int totalHashBits)
+        public static IEnumerable<long> Unpack(byte[] bytes)
+        {
+            var size = bytes.Length / sizeof(long);
+
+            for (var i = 0; i < size; i++)
+            {
+            }
+
+            return null;
+        }
+
+        private static HashAlgorithm ChooseHashAlgorithm(long totalHashBits)
         {
             HashAlgorithm algorithm;
             if (totalHashBits > 384)
@@ -126,6 +138,7 @@ namespace BloomFilters
             ErrorRate = errorRate;
             NumSlices = numSlices;
             Capacity = capacity;
+            HashFunc = CreateHashingAlgorithm();
         }
 
         private static int CalculateBitsPerSlice(ulong capacity, double errorRate, int numSlices)
