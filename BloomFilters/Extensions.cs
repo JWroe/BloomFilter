@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Text;
 
 namespace BloomFilters
 {
@@ -6,16 +6,24 @@ namespace BloomFilters
     {
         public static byte[] GetBytes(this string str)
         {
-            var bytes = new byte[str.Length * sizeof(char)];
-            Buffer.BlockCopy(str.ToCharArray(), srcOffset: 0, dst: bytes, dstOffset: 0, count: bytes.Length);
-            return bytes;
+            return Encoding.UTF8.GetBytes(str);
         }
 
         public static string GetString(this byte[] bytes)
         {
-            var chars = new char[bytes.Length / sizeof(char)];
-            Buffer.BlockCopy(bytes, srcOffset: 0, dst: chars, dstOffset: 0, count: bytes.Length);
-            return new string(chars);
+            return Encoding.UTF8.GetString(bytes);
+        }
+
+        public static string GetHexString(this byte[] ba)
+        {
+            var hex = new StringBuilder(ba.Length * 2);
+
+            foreach (var b in ba)
+            {
+                hex.AppendFormat("{0:x2}", b);
+            }
+
+            return hex.ToString();
         }
     }
 }

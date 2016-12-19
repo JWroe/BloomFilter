@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Security.Cryptography;
 using BloomFilters;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -8,7 +9,7 @@ namespace BloomFilterTests
     public class BloomFilterTests
     {
         [TestMethod]
-        public void TestMethod1()
+        public void ConfigTest()
         {
             var filter = new BloomFilter(capacity: 1200000u);
 
@@ -43,8 +44,9 @@ namespace BloomFilterTests
         [TestMethod]
         public void UnpackTest()
         {
-            var input = @"(‘ÁÝ…4Þ+rYŒùX^G»Ã”[zÕ¦øý/ž.þ´Haéô_“çŽS®™2J9iR".GetBytes();
-
+            //(‘ÁÝ…4Þ+rYŒùX^G»Ã”[zÕ¦øý/ž.þ´Haéô_“çŽS®™2J9iR
+            //var input = @"(‘ÁÝ…4Þ+rYŒùX^G»Ã”[zÕ¦øý/ž.þ´Haéô_“çŽS®™2J9iR".GetBytes();
+            var input = @"????????????????????????".GetBytes();
             var unpacked = BloomFilter.Unpack(input).ToList();
 
             Assert.AreEqual(expected: 10, actual: unpacked.Count);
@@ -59,6 +61,17 @@ namespace BloomFilterTests
             Assert.AreEqual(expected: 1219821102, actual: unpacked.ElementAt(index: 7));
             Assert.AreEqual(expected: 1609886049, actual: unpacked.ElementAt(index: 8));
             Assert.AreEqual(expected: 1401874323, actual: unpacked.ElementAt(index: 9));
+        }
+
+        [TestMethod]
+        public void HashTest()
+        {
+            var input = "0123456789";
+            var expectedOutput = "90ae531f24e48697904a4d0286f354c50a350ebb6c2b9efcb22f71c96ceaeffc11c6095e9ca0df0ec30bf685dcf2e5e5";
+
+            var actual = SHA384.Create().ComputeHash(input.GetBytes()).GetHexString();
+
+            Assert.AreEqual(expectedOutput, actual);
         }
     }
 }

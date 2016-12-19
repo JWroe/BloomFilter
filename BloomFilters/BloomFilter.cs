@@ -79,8 +79,6 @@ namespace BloomFilters
             {
                 var h = salt.Copy();
                 h.Update(key);
-
-                Console.WriteLine(h.Digest().GetString());
                 foreach (long num in Unpack(h.Digest()))
                 {
                     yield return num % numBits;

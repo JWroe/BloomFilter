@@ -10,7 +10,6 @@ namespace BloomFilters
         private readonly HashAlgorithm _algorithm;
 
         private List<byte> Input { get; } = new List<byte>();
-        public double HashSize => _algorithm.HashSize;
         public byte[] Digest() => _algorithm.ComputeHash(Input.ToArray());
 
         private HashFunction(HashAlgorithm algorithm, IEnumerable<byte> input)
