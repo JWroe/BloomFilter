@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 
@@ -48,7 +47,7 @@ namespace BloomFilters
             {
                 var h = salt.Copy();
                 h.Update(key);
-                foreach (var num in Unpack(h.Digest()))
+                foreach (var num in h.Digest().UnpackToUInt())
                 {
                     yield return num % BitsPerSlice;
                     i++;
@@ -57,17 +56,6 @@ namespace BloomFilters
                         break;
                     }
                 }
-            }
-        }
-
-        public IEnumerable<uint> Unpack(byte[] bytes)
-        {
-            const int size = sizeof(uint);
-
-            for (var i = 0; i < NumSlices; i++)
-            {
-                var value = bytes.Skip(i * size).Take(size).ToArray();
-                yield return BitConverter.ToUInt32(value, startIndex: 0);
             }
         }
 

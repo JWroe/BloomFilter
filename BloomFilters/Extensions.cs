@@ -46,5 +46,20 @@ namespace BloomFilters
                              .Select(x => Convert.ToByte(hex.Substring(x, length: 2), fromBase: 16))
                              .ToArray();
         }
+
+        public static IEnumerable<uint> UnpackToUInt(this byte[] bytes)
+        {
+            const int size = sizeof(uint);
+
+            return bytes.Select((b, i) => (@byte: b, index: i))
+                        .GroupBy(tuple => tuple.index / size)
+                        .Where(group => group.Count() == size)
+                        .Select(group => ToUInt32(group.Select(t => t.@byte)));
+        }
+
+        private static uint ToUInt32(IEnumerable<byte> bytes)
+        {
+            return BitConverter.ToUInt32(bytes.ToArray(), startIndex: 0);
+        }
     }
 }
