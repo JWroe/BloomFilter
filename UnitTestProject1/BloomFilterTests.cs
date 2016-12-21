@@ -12,11 +12,11 @@ namespace BloomFilterTests
         {
             var filter = new BloomFilter(capacity: 1200000);
 
-            Assert.AreEqual(filter.Capacity, actual: 1200000u);
+            Assert.AreEqual(filter.Capacity, actual: 1200000);
             Assert.AreEqual(filter.ErrorRate, actual: 0.001);
-            Assert.AreEqual(filter.BitsPerSlice, actual: 1725311u);
-            Assert.AreEqual(filter.NumBits, actual: 17253110u);
-            Assert.AreEqual(filter.NumSlices, actual: 10u);
+            Assert.AreEqual(filter.BitsPerSlice, actual: 1725311);
+            Assert.AreEqual(filter.NumBits, actual: 17253110);
+            Assert.AreEqual(filter.NumSlices, actual: 10);
         }
 
         [TestMethod]
@@ -38,6 +38,26 @@ namespace BloomFilterTests
             Assert.AreEqual(expected: 26225u, actual: hashed.ElementAt(index: 7));
             Assert.AreEqual(expected: 170886u, actual: hashed.ElementAt(index: 8));
             Assert.AreEqual(expected: 921791u, actual: hashed.ElementAt(index: 9));
+        }
+
+        [TestMethod]
+        public void KeysAddedCanBeFound()
+        {
+            const string input = "0123456789";
+            var filter = new BloomFilter(capacity: 1200000);
+            filter.Add(input);
+            Assert.IsTrue(filter.Contains(input));
+            Assert.IsFalse(filter.Contains("012345678"));
+        }
+
+        [TestMethod]
+        public void PerformanceTest()
+        {
+            //var getInput = Enumerable.Range(start: 0, count: 1200000).Select(i => i.ToString());
+            //var filter = new BloomFilter(capacity: 1200000);
+            //filter.Add(input);
+            //Assert.IsTrue(filter.Contains(input));
+            //Assert.IsFalse(filter.Contains("012345678"));
         }
     }
 }

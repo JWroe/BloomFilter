@@ -7,17 +7,19 @@ namespace BloomFilters
 {
     public class BloomFilter
     {
-        public uint NumBits => NumSlices * BitsPerSlice;
+        private LargeBitArray[] BitArray { get; }
 
-        public uint Capacity { get; set; }
+        public int NumBits => NumSlices * BitsPerSlice;
 
-        public uint BitsPerSlice { get; set; }
+        public int Capacity { get; set; }
 
-        public uint NumSlices { get; set; }
+        public int BitsPerSlice { get; set; }
+
+        public int NumSlices { get; set; }
 
         public double ErrorRate { get; set; }
 
-        public Func<string, IEnumerable<uint>> HashFunc { get; private set; }
+        public Func<string, IEnumerable<uint>> HashFunc { get; }
 
         public Func<string, IEnumerable<uint>> CreateHashingAlgorithm()
         {
@@ -35,7 +37,7 @@ namespace BloomFilters
             }
 
             var hashFuncCreator = HashFunction.CreateHashFunction(algorithm);
-            var salts = Enumerable.Range(start: 0, count: (int)numSalts).Select(i => hashFuncCreator(hashFuncCreator(i.ToString().GetBytes()).Digest()));
+            var salts = Enumerable.Range(start: 0, count: numSalts).Select(i => hashFuncCreator(hashFuncCreator(i.ToString().GetBytes()).Digest()));
 
             return key => Hash(salts, key);
         }
@@ -48,11 +50,11 @@ namespace BloomFilters
                                     h.Update(key);
                                     return h.Digest()
                                             .UnpackToUInt()
-                                            .Select(num => num % BitsPerSlice)
+                                            .Select(num => num % (uint)BitsPerSlice)
                                             .ToList();
                                 })
                         .Aggregate((uints, uints2) => uints.Combine(uints2))
-                        .Take((int)NumSlices);
+                        .Take(NumSlices);
         }
 
         private static HashAlgorithm ChooseHashAlgorithm(long totalHashBits)
@@ -81,22 +83,45 @@ namespace BloomFilters
             return algorithm;
         }
 
-        public BloomFilter(uint capacity, double errorRate = 0.001)
+        public BloomFilter(int capacity, double errorRate = 0.001)
         {
-            var numSlices = (uint)Math.Ceiling(Math.Log(1.0 / errorRate, newBase: 2));
+            var numSlices = (int)Math.Ceiling(Math.Log(1.0 / errorRate, newBase: 2));
 
             BitsPerSlice = CalculateBitsPerSlice(capacity, errorRate, numSlices);
             ErrorRate = errorRate;
             NumSlices = numSlices;
             Capacity = capacity;
             HashFunc = CreateHashingAlgorithm();
+            BitArray = Enumerable.Range(start: 0, count: NumSlices).Select(i => new LargeBitArray(BitsPerSlice)).ToArray();
         }
 
-        private static uint CalculateBitsPerSlice(uint capacity, double errorRate, uint numSlices)
+        private static int CalculateBitsPerSlice(int capacity, double errorRate, int numSlices)
         {
             var bitsNumerator = capacity * Math.Abs(Math.Log(errorRate));
             var bitsDenominator = numSlices * Math.Pow(Math.Log(2), y: 2);
-            return (uint)Math.Ceiling(bitsNumerator / bitsDenominator);
+            return (int)Math.Ceiling(bitsNumerator / bitsDenominator);
+        }
+
+        public void Add(string input)
+        {
+            var hashed = HashFunc(input).ToList();
+
+            for (var i = 0; i < NumSlices; i++)
+            {
+                BitArray[i].Set(hashed.ElementAt(i));
+            }
+        }
+
+        public bool Contains(string input)
+        {
+            var hashed = HashFunc(input).ToList();
+            var result = false;
+            for (var i = 0; i < NumSlices; i++)
+            {
+                result |= BitArray[i].Get(hashed.ElementAt(i));
+            }
+
+            return result;
         }
     }
 }
