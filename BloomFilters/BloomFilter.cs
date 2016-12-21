@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 
 namespace BloomFilters
 {
-    public class BloomFilter
+    public class BloomFilter : IHashedDataStore
     {
         private LargeBitArray[] BitArray { get; }
 

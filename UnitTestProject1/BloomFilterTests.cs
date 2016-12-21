@@ -1,5 +1,3 @@
-using System;
-using System.Diagnostics;
 using System.Linq;
 using BloomFilters;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -50,27 +48,6 @@ namespace BloomFilterTests
             filter.Add(input);
             Assert.IsTrue(filter.Contains(input));
             Assert.IsFalse(filter.Contains("012345678"));
-        }
-
-        [TestMethod]
-        public void PerformanceTest()
-        {
-            const int capacity = 1200000;
-            var filter = new BloomFilter(capacity);
-            Enumerable.Range(start: 0, count: capacity)
-                      .Select(i => i.ToString())
-                      .ToList()
-                      .ForEach(i => filter.Add(i));
-
-            const int amountToCheck = 100000;
-            var watch = Stopwatch.StartNew();
-            for (var i = 0; i < amountToCheck; i++)
-            {
-                filter.Contains(i.ToString());
-            }
-            watch.Stop();
-            var allowedTime = TimeSpan.FromMinutes(amountToCheck / 1000000D);
-            Assert.IsTrue(watch.Elapsed <= allowedTime, watch.Elapsed.ToString());
         }
     }
 }
