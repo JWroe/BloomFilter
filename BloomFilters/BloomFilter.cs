@@ -37,26 +37,22 @@ namespace BloomFilters
             var hashFuncCreator = HashFunction.CreateHashFunction(algorithm);
             var salts = Enumerable.Range(start: 0, count: (int)numSalts).Select(i => hashFuncCreator(hashFuncCreator(i.ToString().GetBytes()).Digest()));
 
-            return key => Hash(NumSlices, salts, key);
+            return key => Hash(salts, key);
         }
 
-        private IEnumerable<uint> Hash(uint numSlices, IEnumerable<HashFunction> salts, string key)
+        private IEnumerable<uint> Hash(IEnumerable<HashFunction> salts, string key)
         {
-            var i = 0;
-            foreach (var salt in salts)
-            {
-                var h = salt.Copy();
-                h.Update(key);
-                foreach (var num in h.Digest().UnpackToUInt())
-                {
-                    yield return num % BitsPerSlice;
-                    i++;
-                    if (i >= numSlices)
-                    {
-                        break;
-                    }
-                }
-            }
+            return salts.Select(salt =>
+                                {
+                                    var h = salt.Copy();
+                                    h.Update(key);
+                                    return h.Digest()
+                                            .UnpackToUInt()
+                                            .Select(num => num % BitsPerSlice)
+                                            .ToList();
+                                })
+                        .Aggregate((uints, uints2) => uints.Combine(uints2))
+                        .Take((int)NumSlices);
         }
 
         private static HashAlgorithm ChooseHashAlgorithm(long totalHashBits)

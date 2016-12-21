@@ -61,5 +61,12 @@ namespace BloomFilters
         {
             return BitConverter.ToUInt32(bytes.ToArray(), startIndex: 0);
         }
+
+        public static List<T> Combine<T>(this IEnumerable<T> t1, IEnumerable<T> t2)
+        {
+            var list = new List<T>(t1);
+            list.AddRange(t2);
+            return list;
+        }
     }
 }
