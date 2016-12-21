@@ -5,14 +5,14 @@ using System.Security.Cryptography;
 
 namespace BloomFilters
 {
-    internal class HashFunction
+    public class HashFunction
     {
         private readonly HashAlgorithm _algorithm;
 
         private List<byte> Input { get; } = new List<byte>();
         public byte[] Digest() => _algorithm.ComputeHash(Input.ToArray());
 
-        private HashFunction(HashAlgorithm algorithm, IEnumerable<byte> input)
+        public HashFunction(HashAlgorithm algorithm, IEnumerable<byte> input)
         {
             _algorithm = algorithm;
             Update(input);
